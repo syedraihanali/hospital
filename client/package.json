@@ -13,7 +13,7 @@
     "@heroui/react": "^2.8.2",
     "@heroui/system": "^2.4.20",
     "@heroui/theme": "^2.4.20",
-    "@internationalized/date": "^3.8.2",
+    "@internationalized/date": "3.9.0",
     "@react-aria/ssr": "3.9.10",
     "@react-aria/visually-hidden": "3.8.26",
     "axios": "^1.6.0",
@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "15.5.4",
+    "@eslint/compat": "1.4.0",
     "@react-types/shared": "3.30.0",
     "@tailwindcss/postcss": "4.1.11",
     "@types/node": "20.5.7",
