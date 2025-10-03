@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, type ReactNode } from "react";
 import {
   Card,
   CardBody,
@@ -17,6 +17,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  type DropdownItemProps
 } from "@heroui/react";
 import { 
   AlertTriangle, 
@@ -78,6 +79,37 @@ export default function AlertsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [unreadCount, setUnreadCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+
+  const getAlertActionItems = (alert: Alert) => {
+    const items: {
+      key: string;
+      label: string;
+      icon: ReactNode;
+      className?: string;
+      color?: DropdownItemProps["color"];
+      onPress: () => void;
+    }[] = [];
+
+    if (!alert.isRead) {
+      items.push({
+        key: "mark-read",
+        label: t("alerts.mark_as_read"),
+        icon: <Eye size={16} />,
+        onPress: () => markAsRead(alert.id)
+      });
+    }
+
+    items.push({
+      key: "delete",
+      label: t("alerts.delete"),
+      icon: <Trash2 size={16} />,
+      className: "text-danger",
+      color: "danger",
+      onPress: () => deleteAlert(alert.id)
+    });
+
+    return items;
+  };
 
   useEffect(() => {
     loadAlerts();
@@ -603,25 +635,18 @@ export default function AlertsPage() {
                             <MoreVertical size={16} />
                           </Button>
                         </DropdownTrigger>
-                        <DropdownMenu>
-                          {!alert.isRead && (
+                        <DropdownMenu aria-label="Alert actions">
+                          {getAlertActionItems(alert).map((item) => (
                             <DropdownItem
-                              key="mark-read"
-                              startContent={<Eye size={16} />}
-                              onPress={() => markAsRead(alert.id)}
+                              key={item.key}
+                              startContent={item.icon}
+                              className={item.className}
+                              color={item.color}
+                              onPress={item.onPress}
                             >
-                              {t("alerts.mark_as_read")}
+                              {item.label}
                             </DropdownItem>
-                          )}
-                          <DropdownItem
-                            key="delete"
-                            className="text-danger"
-                            color="danger"
-                            startContent={<Trash2 size={16} />}
-                            onPress={() => deleteAlert(alert.id)}
-                          >
-                            {t("alerts.delete")}
-                          </DropdownItem>
+                          ))}
                         </DropdownMenu>
                       </Dropdown>
                     </div>
