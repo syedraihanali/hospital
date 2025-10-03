@@ -1,20 +1,29 @@
 # syntax=docker/dockerfile:1
-FROM node:20-alpine AS base
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy application files
+FROM deps AS builder
 COPY . .
-
-# Build Next.js application
 RUN npm run build
 
-EXPOSE 3000
-
-ENV PORT=3000
+FROM deps AS dev
+ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
+COPY . .
+CMD ["npm", "run", "dev"]
+
+FROM node:20-alpine AS production
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+
+COPY --from=builder /app .
+
+EXPOSE 3000
 
 CMD ["npm", "run", "start"]
