@@ -45,7 +45,12 @@ const ActivityPage = () => {
   const itemsPerPage = 15;
 
   // Activity types
-  const activityTypes = [
+  const activityTypes: Array<{
+    key: ActivityItem['type'];
+    label: string;
+    icon: typeof Calendar;
+    color: string;
+  }> = [
     { key: 'appointment', label: t('activity.activity_types.appointment'), icon: Calendar, color: 'primary' },
     { key: 'admission', label: t('activity.activity_types.admission'), icon: UserPlus, color: 'success' },
     { key: 'discharge', label: t('activity.activity_types.discharge'), icon: TrendingUp, color: 'secondary' },
@@ -54,11 +59,25 @@ const ActivityPage = () => {
     { key: 'treatment', label: t('activity.activity_types.treatment'), icon: Stethoscope, color: 'primary' }
   ];
 
-  const statusTypes = [
+  const statusTypes: Array<{
+    key: ActivityItem['status'];
+    label: string;
+    color: string;
+  }> = [
     { key: 'completed', label: t('activity.status_types.completed'), color: 'success' },
     { key: 'pending', label: t('activity.status_types.pending'), color: 'warning' },
     { key: 'urgent', label: t('activity.status_types.urgent'), color: 'danger' },
     { key: 'cancelled', label: t('activity.status_types.cancelled'), color: 'default' }
+  ];
+
+  const activityFilterOptions: Array<{ key: 'all' | ActivityItem['type']; label: string }> = [
+    { key: 'all', label: t('activity.all_types') },
+    ...activityTypes.map(({ key, label }) => ({ key, label }))
+  ];
+
+  const statusFilterOptions: Array<{ key: 'all' | ActivityItem['status']; label: string }> = [
+    { key: 'all', label: t('activity.all_status') },
+    ...statusTypes.map(({ key, label }) => ({ key, label }))
   ];
 
   useEffect(() => {
@@ -70,8 +89,8 @@ const ActivityPage = () => {
       setLoading(true);
       
       // Simulate API call with more comprehensive data
-      const response = await dashboardAPI.getRecentActivity(50);
-      const allActivities = response.data || [];
+      const response = await dashboardAPI.getRecentActivity();
+      const allActivities = (response.data || []).slice(0, 50);
       
       // Apply filters
       let filteredActivities = allActivities.filter((activity: ActivityItem) => {
@@ -276,6 +295,7 @@ const ActivityPage = () => {
               />
               
               <Select
+                items={activityFilterOptions}
                 placeholder={t('activity.activity_type_placeholder')}
                 selectedKeys={typeFilter ? [typeFilter] : []}
                 onSelectionChange={(keys) => {
@@ -284,13 +304,15 @@ const ActivityPage = () => {
                 }}
                 className="sm:max-w-xs"
               >
-                <SelectItem key="all">{t('activity.all_types')}</SelectItem>
-                {activityTypes.map((type) => (
-                  <SelectItem key={type.key}>{type.label}</SelectItem>
-                ))}
+                {(type) => (
+                  <SelectItem key={type.key} textValue={type.label}>
+                    {type.label}
+                  </SelectItem>
+                )}
               </Select>
-              
+
               <Select
+                items={statusFilterOptions}
                 placeholder={t('activity.status_placeholder')}
                 selectedKeys={statusFilter ? [statusFilter] : []}
                 onSelectionChange={(keys) => {
@@ -299,10 +321,11 @@ const ActivityPage = () => {
                 }}
                 className="sm:max-w-xs"
               >
-                <SelectItem key="all">{t('activity.all_status')}</SelectItem>
-                {statusTypes.map((status) => (
-                  <SelectItem key={status.key}>{status.label}</SelectItem>
-                ))}
+                {(status) => (
+                  <SelectItem key={status.key} textValue={status.label}>
+                    {status.label}
+                  </SelectItem>
+                )}
               </Select>
               
               <Button
