@@ -70,8 +70,8 @@ const ActivityPage = () => {
       setLoading(true);
       
       // Simulate API call with more comprehensive data
-      const response = await dashboardAPI.getRecentActivity(50);
-      const allActivities = response.data || [];
+      const response = await dashboardAPI.getRecentActivity();
+      const allActivities = (response.data || []).slice(0, 50);
       
       // Apply filters
       let filteredActivities = allActivities.filter((activity: ActivityItem) => {
