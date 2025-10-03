@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Modal,
   ModalContent,
@@ -12,7 +12,6 @@ import {
   Divider,
 } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useI18n } from "@/contexts/I18nContext";
 import {
   Search,
   Users,
@@ -30,9 +29,10 @@ import {
   Moon,
   Monitor,
   LogOut,
-  User,
   ArrowRight,
 } from "lucide-react";
+
+import { useI18n } from "@/contexts/I18nContext";
 
 interface CommandItem {
   id: string;
@@ -57,15 +57,27 @@ interface CommandPaletteProps {
 export default function CommandPalette({
   isOpen,
   onClose,
-  user,
+  user: _user,
   onLogout,
   onThemeChange,
   theme,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { t } = useI18n();
+
+  useEffect(() => {
+    if (isOpen) {
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
+    } else {
+      setQuery("");
+      setSelectedIndex(0);
+    }
+  }, [isOpen]);
 
   const commands: CommandItem[] = useMemo(
     () => [
@@ -77,7 +89,7 @@ export default function CommandPalette({
         icon: <Home size={18} />,
         action: () => router.push("/dashboard"),
         category: "navigation",
-        keywords: ["dashboard", "home", "main", "ana sayfa"],
+        keywords: ["dashboard", "home", "main"],
         shortcut: "Ctrl+H",
       },
       {
@@ -87,7 +99,7 @@ export default function CommandPalette({
         icon: <Users size={18} />,
         action: () => router.push("/dashboard/patients"),
         category: "navigation",
-        keywords: ["patients", "hasta", "hastalar", "people"],
+        keywords: ["patients", "people", "records"],
       },
       {
         id: "nav-appointments",
@@ -96,7 +108,7 @@ export default function CommandPalette({
         icon: <Calendar size={18} />,
         action: () => router.push("/dashboard/appointments"),
         category: "navigation",
-        keywords: ["appointments", "randevu", "calendar", "schedule"],
+        keywords: ["appointments", "calendar", "schedule", "booking"],
       },
       {
         id: "nav-alerts",
@@ -105,7 +117,7 @@ export default function CommandPalette({
         icon: <Bell size={18} />,
         action: () => router.push("/dashboard/alerts"),
         category: "navigation",
-        keywords: ["alerts", "notifications", "uyarılar", "bildirimler"],
+        keywords: ["alerts", "notifications", "reminders"],
       },
       {
         id: "nav-tests",
@@ -114,7 +126,7 @@ export default function CommandPalette({
         icon: <Activity size={18} />,
         action: () => router.push("/dashboard/tests"),
         category: "navigation",
-        keywords: ["tests", "testler", "medical", "results", "sonuçlar"],
+        keywords: ["tests", "labs", "medical", "results"],
       },
       {
         id: "nav-staff",
@@ -123,14 +135,7 @@ export default function CommandPalette({
         icon: <Stethoscope size={18} />,
         action: () => router.push("/dashboard/staff"),
         category: "navigation",
-        keywords: [
-          "staff",
-          "personel",
-          "doctors",
-          "nurses",
-          "doktor",
-          "hemşire",
-        ],
+        keywords: ["staff", "team", "doctors", "nurses"],
       },
       {
         id: "nav-departments",
@@ -139,7 +144,7 @@ export default function CommandPalette({
         icon: <Building2 size={18} />,
         action: () => router.push("/dashboard/departments"),
         category: "navigation",
-        keywords: ["departments", "bölümler", "units", "birimler"],
+        keywords: ["departments", "units", "teams", "divisions"],
       },
       {
         id: "nav-rooms",
@@ -148,7 +153,7 @@ export default function CommandPalette({
         icon: <Bed size={18} />,
         action: () => router.push("/dashboard/rooms"),
         category: "navigation",
-        keywords: ["rooms", "odalar", "beds", "yataklar"],
+        keywords: ["rooms", "wards", "beds", "capacity"],
       },
       {
         id: "nav-records",
@@ -157,7 +162,7 @@ export default function CommandPalette({
         icon: <FileText size={18} />,
         action: () => router.push("/dashboard/medical-records"),
         category: "navigation",
-        keywords: ["records", "kayıtlar", "medical", "tıbbi", "files"],
+        keywords: ["records", "medical", "files", "history"],
       },
       {
         id: "nav-inventory",
@@ -166,7 +171,7 @@ export default function CommandPalette({
         icon: <Package size={18} />,
         action: () => router.push("/dashboard/inventory"),
         category: "navigation",
-        keywords: ["inventory", "envanter", "supplies", "malzemeler"],
+        keywords: ["inventory", "supplies", "stock", "equipment"],
       },
       {
         id: "nav-settings",
@@ -175,7 +180,7 @@ export default function CommandPalette({
         icon: <Settings size={18} />,
         action: () => router.push("/dashboard/settings"),
         category: "settings",
-        keywords: ["settings", "ayarlar", "preferences", "config"],
+        keywords: ["settings", "preferences", "configuration", "options"],
         shortcut: "Ctrl+,",
       },
 
@@ -194,7 +199,7 @@ export default function CommandPalette({
           ),
         action: onThemeChange,
         category: "actions",
-        keywords: ["theme", "tema", "dark", "light", "karanlık", "aydınlık"],
+        keywords: ["theme", "appearance", "dark", "light", "display"],
         shortcut: "Ctrl+T",
       },
       {
@@ -204,7 +209,7 @@ export default function CommandPalette({
         icon: <LogOut size={18} />,
         action: onLogout,
         category: "actions",
-        keywords: ["logout", "çıkış", "sign out", "exit"],
+        keywords: ["logout", "sign out", "exit", "signoff"],
         shortcut: "Ctrl+Q",
       },
 
@@ -219,8 +224,9 @@ export default function CommandPalette({
           // Focus search input after navigation
           setTimeout(() => {
             const searchInput = document.querySelector(
-              'input[placeholder*="patient"]'
+              'input[placeholder*="patient"]',
             ) as HTMLInputElement;
+
             if (searchInput) searchInput.focus();
           }, 100);
         },
@@ -237,8 +243,9 @@ export default function CommandPalette({
           router.push("/dashboard/appointments");
           setTimeout(() => {
             const searchInput = document.querySelector(
-              'input[placeholder*="appointment"]'
+              'input[placeholder*="appointment"]',
             ) as HTMLInputElement;
+
             if (searchInput) searchInput.focus();
           }, 100);
         },
@@ -247,31 +254,34 @@ export default function CommandPalette({
         shortcut: "Ctrl+A",
       },
     ],
-    [router, t, theme, onThemeChange, onLogout]
+    [router, t, theme, onThemeChange, onLogout],
   );
 
   const filteredCommands = useMemo(() => {
     if (!query.trim()) return commands;
 
     const searchTerm = query.toLowerCase().trim();
+
     return commands.filter(
       (command) =>
         command.title.toLowerCase().includes(searchTerm) ||
         command.description?.toLowerCase().includes(searchTerm) ||
         command.keywords.some((keyword) =>
-          keyword.toLowerCase().includes(searchTerm)
-        )
+          keyword.toLowerCase().includes(searchTerm),
+        ),
     );
   }, [commands, query]);
 
   const groupedCommands = useMemo(() => {
     const groups: Record<string, CommandItem[]> = {};
+
     filteredCommands.forEach((command) => {
       if (!groups[command.category]) {
         groups[command.category] = [];
       }
       groups[command.category].push(command);
     });
+
     return groups;
   }, [filteredCommands]);
 
@@ -295,13 +305,13 @@ export default function CommandPalette({
       case "ArrowDown":
         e.preventDefault();
         setSelectedIndex((prev) =>
-          prev < allFilteredCommands.length - 1 ? prev + 1 : 0
+          prev < allFilteredCommands.length - 1 ? prev + 1 : 0,
         );
         break;
       case "ArrowUp":
         e.preventDefault();
         setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : allFilteredCommands.length - 1
+          prev > 0 ? prev - 1 : allFilteredCommands.length - 1,
         );
         break;
       case "Enter":
@@ -351,37 +361,37 @@ export default function CommandPalette({
 
   return (
     <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      size="2xl"
-      placement="top"
       classNames={{
         backdrop: "bg-black/50 backdrop-blur-sm",
         base: "mt-16",
         wrapper: "items-start",
       }}
+      isOpen={isOpen}
+      placement="top"
+      size="2xl"
+      onClose={onClose}
     >
       <ModalContent>
         <ModalHeader className="pb-2">
           <div className="flex items-center space-x-2 w-full">
-            <Search size={20} className="text-muted-foreground" />
+            <Search className="text-muted-foreground" size={20} />
             <span className="font-semibold">{t("command_palette.title")}</span>
           </div>
         </ModalHeader>
         <ModalBody className="pb-6">
           <Input
-            placeholder={t("command_palette.placeholder")}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            startContent={
-              <Search size={18} className="text-muted-foreground" />
-            }
+            ref={inputRef}
             classNames={{
               inputWrapper: "border-divider",
               input: "text-sm",
             }}
+            placeholder={t("command_palette.placeholder")}
+            startContent={
+              <Search className="text-muted-foreground" size={18} />
+            }
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
 
           <div className="max-h-96 overflow-y-auto space-y-4">
@@ -394,16 +404,17 @@ export default function CommandPalette({
                 <div className="space-y-1">
                   {commands.map((command) => {
                     const isSelected = currentIndex === selectedIndex;
-                    const itemIndex = currentIndex++;
+
+                    currentIndex += 1;
 
                     return (
                       <Button
                         key={command.id}
-                        variant={isSelected ? "flat" : "light"}
                         className={`
                           w-full justify-start h-auto p-3 text-left
                           ${isSelected ? "bg-primary/10 border border-primary/20" : "hover:bg-accent/50"}
                         `}
+                        variant={isSelected ? "flat" : "light"}
                         onPress={() => {
                           command.action();
                           onClose();
@@ -447,7 +458,7 @@ export default function CommandPalette({
 
             {filteredCommands.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
-                <Search size={48} className="mx-auto mb-4 opacity-50" />
+                <Search className="mx-auto mb-4 opacity-50" size={48} />
                 <p className="text-sm">{t("command_palette.no_results")}</p>
                 <p className="text-xs">{t("command_palette.try_different")}</p>
               </div>

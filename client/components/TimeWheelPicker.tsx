@@ -25,7 +25,7 @@ interface TimeWheelPickerProps {
 }
 
 const TimeWheelPicker: React.FC<TimeWheelPickerProps> = ({
-  label = "Saat",
+  label = "Time",
   value = "",
   onChange,
   isRequired = false,
@@ -42,28 +42,37 @@ const TimeWheelPicker: React.FC<TimeWheelPickerProps> = ({
   const minuteRef = useRef<HTMLDivElement>(null);
 
   // Parse min and max times
-  const [minHour, minMinute] = min.split(":").map(Number);
-  const [maxHour, maxMinute] = max.split(":").map(Number);
+  const [minHour] = min.split(":").map(Number);
+  const [maxHour] = max.split(":").map(Number);
 
   // Generate hour and minute options
-  const hours = Array.from({ length: maxHour - minHour + 1 }, (_, i) => minHour + i);
+  const hours = Array.from(
+    { length: maxHour - minHour + 1 },
+    (_, i) => minHour + i,
+  );
   const minutes = Array.from({ length: 4 }, (_, i) => i * 15); // 0, 15, 30, 45
 
   // Initialize values from props
   useEffect(() => {
     if (value) {
       const [hour, minute] = value.split(":").map(Number);
+
       setSelectedHour(hour);
       setSelectedMinute(minute);
     }
   }, [value]);
 
   // Scroll to selected item
-  const scrollToSelected = (containerRef: React.RefObject<HTMLDivElement>, index: number) => {
+  const scrollToSelected = (
+    containerRef: React.RefObject<HTMLDivElement>,
+    index: number,
+  ) => {
     if (containerRef.current) {
       const container = containerRef.current;
       const itemHeight = 48; // Height of each item
-      const scrollTop = index * itemHeight - container.clientHeight / 2 + itemHeight / 2;
+      const scrollTop =
+        index * itemHeight - container.clientHeight / 2 + itemHeight / 2;
+
       container.scrollTo({ top: scrollTop, behavior: "smooth" });
     }
   };
@@ -72,8 +81,9 @@ const TimeWheelPicker: React.FC<TimeWheelPickerProps> = ({
   const handleOpen = () => {
     onOpen();
     setTimeout(() => {
-      const hourIndex = hours.findIndex(h => h === selectedHour);
-      const minuteIndex = minutes.findIndex(m => m === selectedMinute);
+      const hourIndex = hours.findIndex((h) => h === selectedHour);
+      const minuteIndex = minutes.findIndex((m) => m === selectedMinute);
+
       scrollToSelected(hourRef, hourIndex);
       scrollToSelected(minuteRef, minuteIndex);
     }, 100);
@@ -82,19 +92,22 @@ const TimeWheelPicker: React.FC<TimeWheelPickerProps> = ({
   // Handle wheel item click
   const handleHourClick = (hour: number) => {
     setSelectedHour(hour);
-    const hourIndex = hours.findIndex(h => h === hour);
+    const hourIndex = hours.findIndex((h) => h === hour);
+
     scrollToSelected(hourRef, hourIndex);
   };
 
   const handleMinuteClick = (minute: number) => {
     setSelectedMinute(minute);
-    const minuteIndex = minutes.findIndex(m => m === minute);
+    const minuteIndex = minutes.findIndex((m) => m === minute);
+
     scrollToSelected(minuteRef, minuteIndex);
   };
 
   // Confirm selection
   const handleConfirm = () => {
-    const timeString = `${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`;
+    const timeString = `${selectedHour.toString().padStart(2, "0")}:${selectedMinute.toString().padStart(2, "0")}`;
+
     onChange?.(timeString);
     onClose();
   };
@@ -105,39 +118,35 @@ const TimeWheelPicker: React.FC<TimeWheelPickerProps> = ({
   return (
     <>
       <Input
+        readOnly
+        className={`${className} cursor-pointer`}
+        classNames={{
+          input: ["cursor-pointer"],
+          inputWrapper: ["cursor-pointer"],
+        }}
+        description={description}
+        errorMessage={errorMessage}
+        isRequired={isRequired}
         label={label}
         value={displayValue}
         onClick={handleOpen}
-        readOnly
-        isRequired={isRequired}
-        errorMessage={errorMessage}
-        description={description}
-        className={`${className} cursor-pointer`}
-        classNames={{
-          input: [
-            "cursor-pointer",
-          ],
-          inputWrapper: [
-            "cursor-pointer",
-          ],
-        }}
       />
 
-      <Modal 
-        isOpen={isOpen} 
-        onClose={onClose}
-        size="sm"
-        placement="center"
+      <Modal
         classNames={{
           base: "bg-white dark:bg-gray-900",
           body: "py-6",
           header: "border-b border-gray-200 dark:border-gray-700",
           footer: "border-t border-gray-200 dark:border-gray-700",
         }}
+        isOpen={isOpen}
+        placement="center"
+        size="sm"
+        onClose={onClose}
       >
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1">
-            <h3 className="text-lg font-semibold">Saat Seçin</h3>
+            <h3 className="text-lg font-semibold">Select Time</h3>
             <p className="text-sm text-gray-500">{description}</p>
           </ModalHeader>
           <ModalBody>
@@ -145,29 +154,30 @@ const TimeWheelPicker: React.FC<TimeWheelPickerProps> = ({
               {/* Hour Wheel */}
               <div className="flex flex-col items-center">
                 <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                  Saat
+                  Hour
                 </div>
-                <div 
+                <div
                   ref={hourRef}
-                  className="h-48 w-16 overflow-y-auto scrollbar-hide relative"
+                  className="h-48 w-16 overflow-y-auto relative"
                   style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
                   }}
                 >
                   <div className="py-20">
                     {hours.map((hour) => (
-                      <div
+                      <button
                         key={hour}
-                        onClick={() => handleHourClick(hour)}
-                        className={`h-12 flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                        className={`h-12 w-full flex items-center justify-center cursor-pointer transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-lg ${
                           hour === selectedHour
-                            ? "bg-blue-500 text-white rounded-lg scale-105 font-semibold"
-                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                            ? "bg-blue-500 text-white scale-105 font-semibold"
+                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                         }`}
+                        type="button"
+                        onClick={() => handleHourClick(hour)}
                       >
-                        {hour.toString().padStart(2, '0')}
-                      </div>
+                        {hour.toString().padStart(2, "0")}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -181,29 +191,30 @@ const TimeWheelPicker: React.FC<TimeWheelPickerProps> = ({
               {/* Minute Wheel */}
               <div className="flex flex-col items-center">
                 <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                  Dakika
+                  Minute
                 </div>
-                <div 
+                <div
                   ref={minuteRef}
-                  className="h-48 w-16 overflow-y-auto scrollbar-hide relative"
+                  className="h-48 w-16 overflow-y-auto relative"
                   style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
                   }}
                 >
                   <div className="py-20">
                     {minutes.map((minute) => (
-                      <div
+                      <button
                         key={minute}
-                        onClick={() => handleMinuteClick(minute)}
-                        className={`h-12 flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                        className={`h-12 w-full flex items-center justify-center cursor-pointer transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-lg ${
                           minute === selectedMinute
-                            ? "bg-blue-500 text-white rounded-lg scale-105 font-semibold"
-                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                            ? "bg-blue-500 text-white scale-105 font-semibold"
+                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                         }`}
+                        type="button"
+                        onClick={() => handleMinuteClick(minute)}
                       >
-                        {minute.toString().padStart(2, '0')}
-                      </div>
+                        {minute.toString().padStart(2, "0")}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -213,33 +224,21 @@ const TimeWheelPicker: React.FC<TimeWheelPickerProps> = ({
             {/* Selected Time Display */}
             <div className="mt-4 text-center">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {selectedHour.toString().padStart(2, '0')}:{selectedMinute.toString().padStart(2, '0')}
+                {selectedHour.toString().padStart(2, "0")}:
+                {selectedMinute.toString().padStart(2, "0")}
               </div>
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button
-              color="danger"
-              variant="light"
-              onPress={onClose}
-            >
-              İptal
+            <Button color="danger" variant="light" onPress={onClose}>
+              Cancel
             </Button>
-            <Button
-              color="primary"
-              onPress={handleConfirm}
-            >
-              Seç
+            <Button color="primary" onPress={handleConfirm}>
+              Select
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-
-      <style jsx global>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </>
   );
 };
