@@ -119,6 +119,16 @@ The backend server will run at `http://localhost:3000`.
 
 ### Start the Frontend
 
+## 🐳 Docker Setup
+
+You can run both the backend and frontend together with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+The command builds images defined in `docker-compose.yml` and starts the API on `http://localhost:3000` and the web client on `http://localhost:3001`.
+
 ```bash
 cd client
 pnpm dev

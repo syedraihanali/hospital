@@ -1,3 +1,10 @@
+# Global ignores
+node_modules/
 .env
 package-lock.json
-node_modules
+
+# Allow committed environment and lock files for client and server
+!server/.env
+!client/.env.local
+!server/package-lock.json
+!client/package-lock.json
