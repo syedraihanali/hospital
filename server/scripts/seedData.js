@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const { Staff, Department } = require('../src/Modules/Database/models');
 
