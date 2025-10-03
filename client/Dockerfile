@@ -4,16 +4,13 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install --include=dev
+RUN npm install
 
 # Copy application files
 COPY . .
 
 # Build Next.js application
 RUN npm run build
-
-# Remove development dependencies to optimize runtime image
-RUN npm prune --omit=dev
 
 EXPOSE 3000
 
