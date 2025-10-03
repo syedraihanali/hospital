@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Input, Card, CardBody } from "@heroui/react";
 import { Search, User } from "lucide-react";
+
 import { patientsAPI } from "@/lib/api";
 import { Patient } from "@/types";
 import { useI18n } from "@/contexts/I18nContext";
@@ -19,10 +20,10 @@ interface PatientAutocompleteProps {
 export default function PatientAutocomplete({
   value,
   onSelect,
-  placeholder = "Hasta ara...",
-  label = "Hasta Seç",
+  placeholder = "Search patients...",
+  label = "Select Patient",
   isRequired = false,
-  errorMessage = ""
+  errorMessage = "",
 }: PatientAutocompleteProps) {
   const { t } = useI18n();
   const [searchTerm, setSearchTerm] = useState(value);
@@ -32,7 +33,6 @@ export default function PatientAutocomplete({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isPatientSelected, setIsPatientSelected] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Debounce search
   useEffect(() => {
@@ -52,12 +52,11 @@ export default function PatientAutocomplete({
     setIsLoading(true);
     try {
       const response = await patientsAPI.search(query, 10);
-      console.log("Patient Search API Response:", response.data);
+
       setSuggestions(response.data || []);
       setShowSuggestions(true);
       setSelectedIndex(-1);
-    } catch (error) {
-      console.error("Error searching patients:", error);
+    } catch {
       setSuggestions([]);
     } finally {
       setIsLoading(false);
@@ -70,12 +69,11 @@ export default function PatientAutocomplete({
   };
 
   const handlePatientSelect = (patient: Patient) => {
-    console.log("Selected patient:", patient);
     const firstName = patient.firstName || patient.first_name || "";
     const lastName = patient.lastName || patient.last_name || "";
     const tcNumber = patient.tcNumber || patient.tc_number || "";
-    const displayName = `${firstName} ${lastName} (TC: ${tcNumber})`;
-    console.log("Display name:", displayName);
+    const displayName = `${firstName} ${lastName} (ID: ${tcNumber})`;
+
     setSearchTerm(displayName);
     setShowSuggestions(false);
     setSuggestions([]); // Clear suggestions to prevent "not found" message
@@ -90,14 +88,14 @@ export default function PatientAutocomplete({
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : 0
+        setSelectedIndex((prev) =>
+          prev < suggestions.length - 1 ? prev + 1 : 0,
         );
         break;
       case "ArrowUp":
         e.preventDefault();
-        setSelectedIndex(prev => 
-          prev > 0 ? prev - 1 : suggestions.length - 1
+        setSelectedIndex((prev) =>
+          prev > 0 ? prev - 1 : suggestions.length - 1,
         );
         break;
       case "Enter":
@@ -128,9 +126,14 @@ export default function PatientAutocomplete({
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
+
     return Math.max(0, age);
   };
 
@@ -138,21 +141,27 @@ export default function PatientAutocomplete({
     <div className="relative w-full">
       <Input
         ref={inputRef}
+        description={
+          searchTerm.length < 2
+            ? t("patients.search_hint", {
+                minimum: "2",
+              }) || "Enter at least 2 characters"
+            : ""
+        }
+        errorMessage={errorMessage}
+        isRequired={isRequired}
         label={label}
-        placeholder={placeholder}
+        placeholder={t("patients.search_placeholder") || placeholder}
+        startContent={<Search className="text-gray-400" size={16} />}
         value={searchTerm}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
         onBlur={handleBlur}
+        onChange={handleInputChange}
         onFocus={() => {
           if (suggestions.length > 0) {
             setShowSuggestions(true);
           }
         }}
-        startContent={<Search size={16} className="text-gray-400" />}
-        isRequired={isRequired}
-        errorMessage={errorMessage}
-        description={searchTerm.length < 2 ? "En az 2 karakter girin" : ""}
+        onKeyDown={handleKeyDown}
       />
 
       {showSuggestions && suggestions.length > 0 && (
@@ -162,20 +171,25 @@ export default function PatientAutocomplete({
               const firstName = patient.firstName || patient.first_name || "";
               const lastName = patient.lastName || patient.last_name || "";
               const tcNumber = patient.tcNumber || patient.tc_number || "";
-              const age = patient.age || calculateAge(patient.dateOfBirth || patient.date_of_birth || "");
-              
+              const age =
+                patient.age ||
+                calculateAge(
+                  patient.dateOfBirth || patient.date_of_birth || "",
+                );
+
               return (
-                <div
+                <button
                   key={patient.patient_id || patient._id}
-                  className={`p-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 ${
+                  className={`p-3 w-full text-left border-b border-gray-100 last:border-b-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                     index === selectedIndex ? "bg-blue-50" : ""
                   }`}
+                  type="button"
                   onClick={() => handlePatientSelect(patient)}
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User size={16} className="text-blue-600" />
+                        <User className="text-blue-600" size={16} />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -185,32 +199,34 @@ export default function PatientAutocomplete({
                         </p>
                         {age > 0 && (
                           <span className="text-xs text-gray-500">
-                            {age} yaş
+                            {age} yrs
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>TC: {tcNumber}</span>
-                        {patient.phone && (
-                          <span>{patient.phone}</span>
-                        )}
+                        <span>ID: {tcNumber}</span>
+                        {patient.phone && <span>{patient.phone}</span>}
                       </div>
                     </div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </CardBody>
         </Card>
       )}
 
-      {showSuggestions && suggestions.length === 0 && searchTerm.length >= 2 && !isLoading && !isPatientSelected && (
-        <Card className="absolute top-full left-0 right-0 z-50 mt-1">
-          <CardBody className="p-4 text-center text-gray-500">
-            Hasta bulunamadı
-          </CardBody>
-        </Card>
-      )}
+      {showSuggestions &&
+        suggestions.length === 0 &&
+        searchTerm.length >= 2 &&
+        !isLoading &&
+        !isPatientSelected && (
+          <Card className="absolute top-full left-0 right-0 z-50 mt-1">
+            <CardBody className="p-4 text-center text-gray-500">
+              No patients found
+            </CardBody>
+          </Card>
+        )}
     </div>
   );
 }

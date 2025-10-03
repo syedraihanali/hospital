@@ -274,6 +274,8 @@ export interface Surgery {
 // Complaint Types
 export interface Complaint {
   complaint_id: string;
+  _id?: string;
+  id?: string;
   patient_id: string;
   complaint_text: string;
   category: 'service' | 'billing' | 'medical' | 'facility' | 'staff' | 'other';
